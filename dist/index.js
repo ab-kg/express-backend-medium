@@ -10,8 +10,13 @@ app.use(express.json());
 const connectionString = `${process.env.DATABASE_URL}`;
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
+import { signUpInput, signinInput, createPostInput, UpdatPostInput } from "@abhishekkalagurki/commonformedium";
 app.post("/api/v1/user/signup", async (req, res) => {
     const body = await req.body;
+    const { success } = signUpInput.safeParse(body);
+    if (!success) {
+        return res.json({ msg: "input validation error " });
+    }
     console.log(body);
     const password = await bcrypt.hash(body.password, 10);
     console.log(password);
@@ -39,6 +44,10 @@ app.post("/api/v1/user/signup", async (req, res) => {
 app.post("/api/v1/user/signin", async (req, res) => {
     const body = req.body;
     console.log(body);
+    const { success } = signinInput.safeParse(body);
+    if (!success) {
+        return res.json({ msg: "input validation error " });
+    }
     const existingUser = await prisma.user.findUnique({
         where: {
             email: body.email
@@ -84,6 +93,10 @@ app.post("/api/v1/blog", auth, async (req, res) => {
         return res.status(401).json({ msg: "ueser not qualified" });
     }
     const body = req.body;
+    const { success } = createPostInput.safeParse(body);
+    if (!success) {
+        return res.json({ msg: "input validation error " });
+    }
     console.log(typeof userId);
     const post = await prisma.post.create({
         data: {
@@ -104,6 +117,10 @@ app.put("/api/v1/blog", auth, async (req, res) => {
         return res.status(401).json({ msg: "ueser not qualified" });
     }
     const body = await req.body;
+    const { success } = UpdatPostInput.safeParse(body);
+    if (!success) {
+        return res.json({ msg: "input validation error " });
+    }
     const updatedpost = await prisma.post.update({
         where: {
             id: body.id,
